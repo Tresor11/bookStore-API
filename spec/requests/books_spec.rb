@@ -5,13 +5,15 @@ require 'rails_helper'
 
 RSpec.describe 'Books API', type: :request do
   # initialize test data
-  let!(:books) { create_list(:book, 10) }
+  let(:user) { create(:user) }
+  let!(:books) { create_list(:book, 10, user_id: user.id) }
   let(:book_id) { books.first.id }
 
+  let(:headers) { valid_headers }
   # Test suite for GET /books
   describe 'GET /books' do
     # make HTTP get request before each example
-    before { get '/books' }
+    before { get '/books', params: {}, headers: headers }
 
     it 'returns books' do
       # Note `json` is a custom helper to parse JSON responses
@@ -26,7 +28,7 @@ RSpec.describe 'Books API', type: :request do
 
   # Test suite for GET /books/:id
   describe 'GET /books/:id' do
-    before { get "/books/#{book_id}" }
+    before { get "/books/#{book_id}", params: {}, headers: headers }
 
     context 'when the record exists' do
       it 'returns the book' do
@@ -55,10 +57,10 @@ RSpec.describe 'Books API', type: :request do
   # Test suite for POST /books
   describe 'POST /books' do
     # valid payload
-    let(:valid_attributes) { { title: 'Learn Elm', author: '1', category: 'action' } }
+    let(:valid_attributes) { { title: 'Learn Elm', author: '1', category: 'action', user_id: user.id.to_s }.to_json }
 
     context 'when the request is valid' do
-      before { post '/books', params: valid_attributes }
+      before { post '/books', params: valid_attributes, headers: headers }
 
       it 'creates a book' do
         expect(json['title']).to eq('Learn Elm')
@@ -70,7 +72,7 @@ RSpec.describe 'Books API', type: :request do
     end
 
     context 'when the request is invalid' do
-      before { post '/books', params: { title: 'Foobar', category: 'action' } }
+      before { post '/books', params: { title: 'Foobar', category: 'action' }.to_json, headers: headers }
 
       it 'returns status code 422' do
         expect(response).to have_http_status(422)
@@ -85,10 +87,10 @@ RSpec.describe 'Books API', type: :request do
 
   # Test suite for PUT /books/:id
   describe 'PUT /books/:id' do
-    let(:valid_attributes) { { title: 'Shopping' } }
+    let(:valid_attributes) { { title: 'Shopping' }.to_json }
 
     context 'when the record exists' do
-      before { put "/books/#{book_id}", params: valid_attributes }
+      before { put "/books/#{book_id}", params: valid_attributes, headers: headers }
 
       it 'updates the record' do
         expect(response.body).to be_empty
@@ -102,7 +104,7 @@ RSpec.describe 'Books API', type: :request do
 
   # Test suite for DELETE /books/:id
   describe 'DELETE /books/:id' do
-    before { delete "/books/#{book_id}" }
+    before { delete "/books/#{book_id}", params: {}, headers: headers }
 
     it 'returns status code 204' do
       expect(response).to have_http_status(204)
