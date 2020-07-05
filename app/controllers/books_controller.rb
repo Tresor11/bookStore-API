@@ -5,13 +5,13 @@ class BooksController < ApplicationController
 
   # GET /books
   def index
-    @books = Book.all
+    @books = current_user.books
     json_response(@books)
   end
 
   # POST /books
   def create
-    @book = Book.create!(book_params)
+    @book = current_user.books.create!(book_params)
     json_response(@book, :created)
   end
 
